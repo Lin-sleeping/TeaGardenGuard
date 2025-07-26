@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.IotSoilMoistureMapper">
+    <insert id="insertIotSoilMoisture" parameterType="com.ruoyi.system.domain.IotSoilMoisture">
+        INSERT INTO iot_soil_humidity (value, data_time)
+        VALUES (#{value}, #{dataTime})
+    </insert>
+    <select id="selectIotSoilMoistureListByTime" resultType="com.ruoyi.system.domain.IotSoilMoisture">
+        SELECT * FROM iot_soil_humidity
+        WHERE data_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY data_time ASC
+    </select>
+    <select id="selectLatestIotSoilMoisture" resultType="com.ruoyi.system.domain.IotSoilMoisture">
+        SELECT * FROM iot_soil_humidity ORDER BY data_time DESC LIMIT 1
+    </select>
+    <select id="selectIotSoilMoistureListMapByTime" resultType="java.util.HashMap">
+        SELECT value, DATE_FORMAT(data_time, '%H:%i:%s') as time
+        FROM iot_soil_humidity
+        WHERE data_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY data_time ASC
+    </select>
+    <select id="selectLatestIotSoilMoistureMap" resultType="java.util.HashMap">
+        SELECT value,DATE_FORMAT(data_time, '%H:%i:%s') as time
+        FROM iot_soil_humidity
+        ORDER BY data_time DESC
+        LIMIT 1
+    </select>
+</mapper> 

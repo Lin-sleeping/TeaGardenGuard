@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.IotFlameIntensityMapper">
+    <insert id="insertIotFlameIntensity" parameterType="com.ruoyi.system.domain.IotFlameIntensity">
+        INSERT INTO iot_flame_intensity (value, data_time)
+        VALUES (#{value}, #{dataTime})
+    </insert>
+    <select id="selectIotFlameIntensityListByTime" resultType="com.ruoyi.system.domain.IotFlameIntensity">
+        SELECT * FROM iot_flame_intensity
+        WHERE data_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY data_time ASC
+    </select>
+    <select id="selectLatestIotFlameIntensity" resultType="com.ruoyi.system.domain.IotFlameIntensity">
+        SELECT * FROM iot_flame_intensity ORDER BY data_time DESC LIMIT 1
+    </select>
+    <select id="selectIotFlameIntensityListMapByTime" resultType="java.util.HashMap">
+        SELECT value,DATE_FORMAT(data_time, '%H:%i:%s') as time
+        FROM iot_flame_intensity
+        WHERE data_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY data_time ASC
+    </select>
+    <select id="selectLatestIotFlameIntensityMap" resultType="java.util.HashMap">
+        SELECT value, DATE_FORMAT(data_time, '%H:%i:%s') as time
+        FROM iot_flame_intensity
+        ORDER BY data_time DESC
+        LIMIT 1
+    </select>
+</mapper> 

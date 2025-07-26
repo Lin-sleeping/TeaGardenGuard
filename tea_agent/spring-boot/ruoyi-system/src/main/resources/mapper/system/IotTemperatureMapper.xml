@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.IotTemperatureMapper">
+    <insert id="insertIotTemperature" parameterType="com.ruoyi.system.domain.IotTemperature">
+        INSERT INTO iot_temperature (value, data_time)
+        VALUES (#{value}, #{dataTime})
+    </insert>
+    <select id="selectIotTemperatureListByTime" resultType="com.ruoyi.system.domain.IotTemperature">
+        SELECT * FROM iot_temperature
+        WHERE data_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY data_time ASC
+    </select>
+    <select id="selectLatestIotTemperature" resultType="com.ruoyi.system.domain.IotTemperature">
+        SELECT * FROM iot_temperature ORDER BY data_time DESC LIMIT 1
+    </select>
+    <select id="selectIotTemperatureListMapByTime" resultType="java.util.HashMap">
+        SELECT value, DATE_FORMAT(data_time, '%H:%i:%s') as time
+        FROM iot_temperature
+        WHERE data_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY data_time ASC
+    </select>
+    <select id="selectLatestIotTemperatureMap" resultType="java.util.HashMap">
+        SELECT value,DATE_FORMAT(data_time, '%H:%i:%s') as time
+        FROM iot_temperature
+        ORDER BY data_time DESC
+        LIMIT 1
+    </select>
+</mapper> 

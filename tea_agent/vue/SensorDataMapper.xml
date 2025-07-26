@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wumei.smart.mapper.SensorDataMapper">
+    
+    <resultMap type="SensorData" id="SensorDataResult">
+        <result property="id"    column="id"    />
+        <result property="deviceId"    column="device_id"    />
+        <result property="temperature"    column="temperature"    />
+        <result property="humidity"    column="humidity"    />
+        <result property="co2"    column="co2"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectSensorDataVo">
+        select id, device_id, temperature, humidity, co2, create_time from sensor_data
+    </sql>
+
+    <select id="selectSensorDataList" parameterType="SensorData" resultMap="SensorDataResult">
+        <include refid="selectSensorDataVo"/>
+        <where>  
+            <if test="deviceId != null  and deviceId != ''"> and device_id = #{deviceId}</if>
+            <if test="temperature != null "> and temperature = #{temperature}</if>
+            <if test="humidity != null "> and humidity = #{humidity}</if>
+            <if test="co2 != null "> and co2 = #{co2}</if>
+        </where>
+        order by create_time desc
+    </select>
+    
+    <select id="selectSensorDataById" parameterType="Long" resultMap="SensorDataResult">
+        <include refid="selectSensorDataVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectLatestSensorData" parameterType="String" resultMap="SensorDataResult">
+        <include refid="selectSensorDataVo"/>
+        where device_id = #{deviceId}
+        order by create_time desc
+        limit 1
+    </select>
+
+    <select id="selectAllLatestSensorData" resultMap="SensorDataResult">
+        SELECT s.*
+        FROM sensor_data s
+        INNER JOIN (
+            SELECT device_id, MAX(create_time) as max_time
+            FROM sensor_data
+            GROUP BY device_id
+        ) latest ON s.device_id = latest.device_id AND s.create_time = latest.max_time
+        ORDER BY s.create_time DESC
+    </select>
+
+    <select id="selectHistoryData" resultMap="SensorDataResult">
+        <include refid="selectSensorDataVo"/>
+        where device_id = #{deviceId}
+        and create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        order by create_time asc
+    </select>
+
+    <select id="selectAllHistoryData" resultMap="SensorDataResult">
+        <include refid="selectSensorDataVo"/>
+        where create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        order by create_time asc
+    </select>
+
+    <select id="selectTemperatureTrend" resultType="java.math.BigDecimal">
+        SELECT temperature
+        FROM sensor_data
+        WHERE device_id = #{deviceId}
+        AND create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="selectHumidityTrend" resultType="java.math.BigDecimal">
+        SELECT humidity
+        FROM sensor_data
+        WHERE device_id = #{deviceId}
+        AND create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="selectCo2Trend" resultType="java.lang.Integer">
+        SELECT co2
+        FROM sensor_data
+        WHERE device_id = #{deviceId}
+        AND create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="selectTimeLabels" resultType="java.lang.String">
+        SELECT DATE_FORMAT(create_time, '%H:%i') as time_label
+        FROM sensor_data
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d %H:00:00')
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="selectStatsData" resultType="com.wumei.smart.domain.dto.SensorDataDTO">
+        SELECT 
+            MAX(temperature) as temperature_max,
+            MIN(temperature) as temperature_min,
+            AVG(temperature) as temperature_avg,
+            MAX(humidity) as humidity_max,
+            MIN(humidity) as humidity_min,
+            AVG(humidity) as humidity_avg,
+            MAX(co2) as co2_max,
+            MIN(co2) as co2_min,
+            AVG(co2) as co2_avg,
+            COUNT(*) as data_count
+        FROM sensor_data
+        WHERE device_id = #{deviceId}
+        AND create_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+        
+    <insert id="insertSensorData" parameterType="SensorData" useGeneratedKeys="true" keyProperty="id">
+        insert into sensor_data
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deviceId != null">device_id,</if>
+            <if test="temperature != null">temperature,</if>
+            <if test="humidity != null">humidity,</if>
+            <if test="co2 != null">co2,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deviceId != null">#{deviceId},</if>
+            <if test="temperature != null">#{temperature},</if>
+            <if test="humidity != null">#{humidity},</if>
+            <if test="co2 != null">#{co2},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSensorData" parameterType="SensorData">
+        update sensor_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deviceId != null">device_id = #{deviceId},</if>
+            <if test="temperature != null">temperature = #{temperature},</if>
+            <if test="humidity != null">humidity = #{humidity},</if>
+            <if test="co2 != null">co2 = #{co2},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSensorDataById" parameterType="Long">
+        delete from sensor_data where id = #{id}
+    </delete>
+
+    <delete id="deleteSensorDataByIds" parameterType="String">
+        delete from sensor_data where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper> 
